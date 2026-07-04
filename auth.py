@@ -4,7 +4,7 @@ import hashlib
 from datetime import datetime, timedelta, timezone
 from db import get_db,Session
 from model import User , OTP
-from security import (create_token,hash_password,generate_otp,verify_password)
+from security import (create_token,hash_password,generate_otp,verify_password,verify_access_token)
 
 from utils import OTPPurpose
 from config import OTP_EXPIRE_MINUTES
@@ -341,3 +341,9 @@ def reset_password(request:Request,
     return {
         "message": "Password reset successfully"
     }
+# protected route
+
+@router.post("/admin")
+def admin(data = Depends(verify_access_token))->dict:
+    print(data)
+    return data
