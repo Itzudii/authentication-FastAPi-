@@ -4,8 +4,9 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from fastapi import Depends , HTTPException
 import secrets
+import hashlib
 
-from config import (
+from authentication.core.config import (
     SECRET_KEY,
     ALGORITHM,
     ACCESS_TOKEN_EXPIRE_MINUTES
@@ -31,6 +32,8 @@ def verify_password(plain_password, hashed_password):
 def generate_otp() -> str:
     return "".join(str(secrets.randbelow(10)) for _ in range(6))
 
+def hash_otp(otp:str)->str:
+    return hashlib.sha256(str(otp).encode()).hexdigest()
 # ------------------------
 # token
 # ------------------------

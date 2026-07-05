@@ -1,45 +1,19 @@
 from fastapi import APIRouter, HTTPException ,Depends ,Request 
-from pydantic import BaseModel, EmailStr
-import hashlib
 from datetime import datetime, timedelta, timezone
-from db import get_db,Session
-from model import User , OTP
-from security import (create_token,hash_password,generate_otp,verify_password,verify_access_token)
 
-from utils import OTPPurpose
-from config import OTP_EXPIRE_MINUTES
+from authentication.core.db import get_db,Session
+from authentication.schemas.auth import RegisterRequest, SendOTPRequest,VerifyOTPRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
+
+from authentication.model.auth import User , OTP
+from authentication.core.security import (create_token,hash_password,generate_otp,verify_password,verify_access_token,hash_otp)
+
+from authentication.utils.auth import OTPPurpose
+from authentication.core.config import OTP_EXPIRE_MINUTES
+from authentication.limiter import limiter
 
 
 router = APIRouter()
-from limiter import limiter
-# ------------------------
-# Schemas
-# ------------------------
 
-class RegisterRequest(BaseModel):
-    email: EmailStr
-    password: str
-
-
-class SendOTPRequest(BaseModel):
-    email: EmailStr
-
-
-class VerifyOTPRequest(BaseModel):
-    email: EmailStr
-    otp: str
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
-
-class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
-
-class ResetPasswordRequest(BaseModel):
-    email: EmailStr
-    otp: str
-    new_password: str
 
 # ------------------------
 # helper
@@ -48,14 +22,17 @@ class ResetPasswordRequest(BaseModel):
 def get_user(db:Session,email:str)-> User|None:
     return db.query(User).filter(User.email == email).first()
 
-def hash_otp(otp:str)->str:
-    return hashlib.sha256(str(otp).encode()).hexdigest()
-
 def cleanup_expired_otps(db: Session)->None:
     db.query(OTP).filter(
         OTP.expires_at < datetime.now(timezone.utc)
     ).delete()
 
+def ensure_utc(dt):
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
 # ------------------------
 # Register
 # ------------------------
@@ -136,14 +113,7 @@ def send_otp(request:Request,data: SendOTPRequest,db:Session = Depends(get_db))-
         "message": "OTP sent"
     }
 
-from datetime import timezone
 
-def ensure_utc(dt):
-    if dt is None:
-        return None
-    if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
-    return dt
 # ------------------------
 # Verify OTP
 # ------------------------
@@ -341,8 +311,8 @@ def reset_password(request:Request,
     return {
         "message": "Password reset successfully"
     }
-# protected route
 
+# protected route
 @router.post("/admin")
 def admin(data = Depends(verify_access_token))->dict:
     print(data)

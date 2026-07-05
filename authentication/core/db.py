@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import sessionmaker,Session
-from config import DATABASE_URL
+from authentication.core.config import DATABASE_URL
 
 engine = create_engine(
     DATABASE_URL,
@@ -20,8 +20,9 @@ class Base(DeclarativeBase):
 
 
 
+Base.metadata.create_all(bind=engine)
+
 def get_db():
-    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
     try:
