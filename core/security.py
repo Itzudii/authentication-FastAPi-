@@ -6,7 +6,7 @@ from fastapi import Depends , HTTPException
 import secrets
 import hashlib
 
-from authentication.core.config import (
+from core.config import (
     SECRET_KEY,
     ALGORITHM,
     ACCESS_TOKEN_EXPIRE_MINUTES

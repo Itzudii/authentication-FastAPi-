@@ -1,7 +1,7 @@
 from fastapi import FastAPI , Request
 from fastapi.responses import JSONResponse
-from authentication.routes import auth
-from authentication.core.limiter import limiter
+from authentication import route
+from core.limiter import limiter
 from slowapi.errors import RateLimitExceeded
 from fastapi.responses import JSONResponse
 
@@ -9,7 +9,7 @@ app = FastAPI()
 
 app.state.limiter = limiter
 
-app.include_router(auth.router,prefix='/auth')
+app.include_router(route.router,prefix='/auth')
 
 #Error Handle
 @app.exception_handler(RateLimitExceeded)

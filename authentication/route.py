@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException ,Depends ,Request 
 from datetime import datetime, timedelta, timezone
 
-from authentication.core.db import get_db,Session
-from authentication.schemas.auth import OTPPurpose, RegisterRequest, SendOTPRequest,VerifyOTPRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
+from core.database import get_db,Session
+from authentication.schemas import RegisterRequest, SendOTPRequest,VerifyOTPRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
+from authentication.enums import OTPPurpose
+from authentication.model import User , OTP
+from core.security import (create_token,hash_password,generate_otp,verify_password,verify_access_token,hash_otp)
 
-from authentication.model.auth import User , OTP
-from authentication.core.security import (create_token,hash_password,generate_otp,verify_password,verify_access_token,hash_otp)
-
-from authentication.core.config import OTP_EXPIRE_MINUTES
-from authentication.core.limiter import limiter
+from core.config import OTP_EXPIRE_MINUTES
+from core.limiter import limiter
 
 
 router = APIRouter()
